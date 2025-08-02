@@ -1,6 +1,10 @@
+require "./maze_json_serializer"
+
 module MazeCraze
   class Maze
     # ──────────────── Constants & Types ────────────────
+    include MazeJsonSerializer
+
     OFFSETS = [{-1, 0}, {1, 0}, {0, -1}, {0, 1}]
 
     class NotConfiguredError < Exception; end
@@ -28,6 +32,11 @@ module MazeCraze
     private getter? configured : Bool = false
 
     # - Lifecycle -
+
+    def self.from_json(json)
+      MazeJsonSerializer.from_json(json)
+    end
+
     def initialize(@width : UInt32, @height : UInt32, @rand : Random = Random::DEFAULT)
       @maze = (0_u32...width).map { |x| (0_u32...height).map { |y| Cell.new(x, y) } }
     end
@@ -89,9 +98,13 @@ module MazeCraze
     end
 
     # - Private Helpers -
-    private def cell_at(x : UInt32, y : UInt32) : Cell
+    protected def cell_at(x : UInt32, y : UInt32) : Cell
       raise ArgumentError.new("Out of bounds: #{x}, #{y}") if x >= width || y >= height
       maze[x][y]
+    end
+
+    protected def generated!
+      @generated = true
     end
 
     private def start_cell : Cell

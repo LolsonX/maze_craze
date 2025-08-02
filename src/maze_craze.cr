@@ -18,6 +18,7 @@ height = 10_u32
 method = MazeCraze::Maze::GenerationMethod::DepthFirstSearch
 animate = false
 render_io = STDOUT
+save_to = nil
 
 OptionParser.parse do |parser|
   parser.banner = "Usage: maze_craze [options]"
@@ -52,6 +53,10 @@ OptionParser.parse do |parser|
   parser.on("-r", "--render-to=FILE_PATH", "Redirect final render to given file") do |file_path|
     render_io = File.open(file_path, "w")
   end
+
+  parser.on("-s", "--save-to=FILE_PATH", "Save final maze to given file") do |file_path|
+    save_to = File.open(file_path, "w")
+  end
 end
 
 maze = MazeCraze::Maze.new(width, height)
@@ -64,3 +69,7 @@ maze.configure(
 maze.generate!(method, animate)
 maze_renderer.render(render_io)
 render_io.close if render_io != STDOUT
+if target = save_to
+  target.puts(maze.to_json)
+  target.close
+end

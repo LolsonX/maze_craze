@@ -1,13 +1,13 @@
 module MazeCraze
   class Cell
-    private getter neighbors : Array(Cell)
+    private getter neighbors : Set(Cell)
     getter x : UInt32
     getter y : UInt32
 
     property? visited : Bool
 
     def initialize(@x, @y)
-      @neighbors = [] of Cell
+      @neighbors = Set(Cell).new
       @visited = false
     end
 
@@ -25,6 +25,10 @@ module MazeCraze
 
     def add_neighbor(cell : Cell)
       @neighbors << cell
+    end
+
+    def serialized_neighbors
+      @neighbors.map { |neighbour| {x: neighbour.x, y: neighbour.y} }
     end
 
     def north_wall?
