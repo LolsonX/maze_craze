@@ -1,4 +1,4 @@
-# # MazeCraze
+# MazeCraze
 # A terminal-based maze generation and solving library in Crystal.
 # Supports Unicode rendering, configurable start/end points, and pathfinding via Dijkstra’s algorithm.
 
@@ -17,8 +17,8 @@ end
 MazeCraze::Maze.new(MazeCraze::WIDTH, MazeCraze::HEIGHT)
   .tap do |maze|
     maze.configure(
-      MazeCraze::CellConfig.new(0, 0, "S"),
-      MazeCraze::CellConfig.new(MazeCraze::WIDTH - 1, MazeCraze::HEIGHT - 1, "E"),
+      MazeCraze::CellConfig.new(0, 0),
+      MazeCraze::CellConfig.new(MazeCraze::WIDTH - 1, MazeCraze::HEIGHT - 1),
       MazeCraze::MazeGenerationRenderer.new(pointerof(maze)),
     ).generate!(MazeCraze::Maze::GenerationMethod::DepthFirstSearch)
     MazeCraze::MazeGenerationRenderer.new(pointerof(maze)).render

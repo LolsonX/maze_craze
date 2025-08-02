@@ -142,7 +142,7 @@ module MazeCraze
 
     private def get_possible_neighbors(cell : Cell) : Array(Cell)
       OFFSETS.compact_map do |(x_offset, y_offset)|
-        next if (dx < 0 && cell.x < dx.abs) || (dy < 0 && cell.y < dy.abs)
+        next if (x_offset < 0 && cell.x < x_offset.abs) || (y_offset < 0 && cell.y < y_offset.abs)
 
         x_neighbour, y_neighbour = cell.x + x_offset, cell.y + y_offset
         next if x_neighbour >= width || y_neighbour >= height
