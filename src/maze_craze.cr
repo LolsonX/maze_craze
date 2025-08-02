@@ -19,6 +19,7 @@ method = MazeCraze::Maze::GenerationMethod::DepthFirstSearch
 animate = false
 render_io = STDOUT
 save_to = nil
+maze = nil
 
 OptionParser.parse do |parser|
   parser.banner = "Usage: maze_craze [options]"
@@ -57,19 +58,29 @@ OptionParser.parse do |parser|
   parser.on("-s", "--save-to=FILE_PATH", "Save final maze to given file") do |file_path|
     save_to = File.open(file_path, "w")
   end
+
+  parser.on("-l", "--load=FILE_PATH", "Load maze from given file") do |file_path|
+    maze = MazeCraze::Maze.from_json(File.read(file_path))
+  end
 end
 
-maze = MazeCraze::Maze.new(width, height)
-maze_renderer = MazeCraze::MazeGenerationRenderer.new(pointerof(maze))
-maze.configure(
-  MazeCraze::CellConfig.new(0_u32, 0_u32),
-  MazeCraze::CellConfig.new(width - 1, height - 1),
-  maze_renderer
-)
-maze.generate!(method, animate)
-maze_renderer.render(render_io)
-render_io.close if render_io != STDOUT
-if target = save_to
-  target.puts(maze.to_json)
-  target.close
+if loaded_maze = maze
+  maze_renderer = MazeCraze::MazeGenerationRenderer.new(pointerof(loaded_maze).as(Pointer(MazeCraze::Maze)))
+  maze_renderer.render(render_io)
+  render_io.close if render_io != STDOUT
+else
+  new_maze = MazeCraze::Maze.new(width, height)
+  maze_renderer = MazeCraze::MazeGenerationRenderer.new(pointerof(new_maze))
+  new_maze.configure(
+    MazeCraze::CellConfig.new(0_u32, 0_u32),
+    MazeCraze::CellConfig.new(width - 1, height - 1),
+    maze_renderer
+  )
+  new_maze.generate!(method, animate)
+  maze_renderer.render(render_io)
+  render_io.close if render_io != STDOUT
+  if target = save_to
+    target.puts(new_maze.to_json)
+    target.close
+  end
 end
