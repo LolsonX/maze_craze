@@ -1,0 +1,17 @@
+name: maze_craze
+version: 0.1.0
+
+authors:
+  - Karol Ostrowski <xlolsonx@gmail.com>
+
+targets:
+  maze_craze:
+    main: src/maze_craze.cr
+
+development_dependencies:
+  ameba:
+    github: crystal-ameba/ameba
+
+crystal: '>= 1.16.3'
+
+license: MIT
