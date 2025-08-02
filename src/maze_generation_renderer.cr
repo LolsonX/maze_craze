@@ -25,8 +25,8 @@ module MazeCraze
       print "\e[2J"
     end
 
-    def render
-      print "#{self}"
+    def render(io : IO = STDOUT)
+      io.print "#{self}"
       sleep(FRAME_DURATION)
     end
 
