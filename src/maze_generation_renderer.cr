@@ -20,7 +20,7 @@ module MazeCraze
       default: " ",
     }
 
-    def initialize(@maze_ptr : Pointer(Maze))
+    def initialize(@maze : Maze)
       # Clear the screen
       print "\e[2J"
     end
@@ -60,7 +60,7 @@ module MazeCraze
     end
 
     private def maze
-      @maze_ptr.value
+      @maze
     end
 
     private def glyph(x : UInt32, y : UInt32)

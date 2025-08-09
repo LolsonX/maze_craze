@@ -41,13 +41,16 @@ module MazeCraze
       @maze = (0_u32...width).map { |x| (0_u32...height).map { |y| Cell.new(x, y) } }
     end
 
-    def configure(start_cell : CellConfig, end_cell : CellConfig, renderer : MazeGenerationRenderer? = nil)
+    def configure(start_cell : CellConfig, end_cell : CellConfig)
       tap do
-        @renderer = renderer
         @start_cell = cell_at(start_cell.x, start_cell.y)
         @end_cell = cell_at(end_cell.x, end_cell.y)
         @configured = true
       end
+    end
+
+    def renderer= (renderer : MazeGenerationRenderer?)
+      @renderer = renderer
     end
 
     def generate!(generation_method : GenerationMethod, animate = false) : Maze

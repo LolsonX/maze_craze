@@ -2,7 +2,7 @@
 # A terminal-based maze generation and solving library in Crystal.
 # Supports Unicode rendering, configurable start/end points, and pathfinding via Dijkstra’s algorithm.
 
-require "option_parser"
+require "./cli"
 require "./cell_config"
 require "./cell"
 require "./maze"
@@ -10,77 +10,47 @@ require "./maze_generation_renderer"
 
 module MazeCraze
   VERSION = "0.1.0"
-end
 
-# Defaults
-width = 20_u32
-height = 10_u32
-method = MazeCraze::Maze::GenerationMethod::DepthFirstSearch
-animate = false
-render_io = STDOUT
-save_to = nil
-maze = nil
+  def self.run
+    defaults = CLI::Option.new(
+      height: 10_u32,
+      width: 20_u32,
+      method: MazeCraze::Maze::GenerationMethod::DepthFirstSearch,
+      animate: false,
+      render_to: nil,
+      save_to: nil,
+      maze: nil,
+    )
 
-OptionParser.parse do |parser|
-  parser.banner = "Usage: maze_craze [options]"
+    options = CLI.parse_options(defaults)
+    width, height = options.width, options.height
+    maze = options.maze || begin
+        new_maze = MazeCraze::Maze.new(options.width, options.height)
+        new_maze.configure(
+          MazeCraze::CellConfig.new(0_u32, 0_u32),
+          MazeCraze::CellConfig.new(width - 1, height - 1)
+        )
+        new_maze.tap &.generate!(options.method, options.animate)
+    end
 
-  parser.on("-w WIDTH", "--width=WIDTH", "Width of the maze") do |user_width|
-    width = user_width.to_u32
-  end
+    maze_renderer = MazeCraze::MazeGenerationRenderer.new(maze)
+                                                     .tap { |maze_renderer| maze.renderer = maze_renderer }
 
-  parser.on("-h HEIGHT", "--height=HEIGHT", "Height of the maze") do |user_height|
-    height = user_height.to_u32
-  end
+    if render_to = options.render_to
+      File.open(render_to, "w") { |file| maze_renderer.render(file) }
+    else
+      maze_renderer.render(STDOUT)
+    end
 
-  parser.on("-m METHOD", "--method=METHOD", "Generation method (e.g., dfs)") do |generation_method|
-    method = case generation_method.downcase
-             when "dfs"
-               MazeCraze::Maze::GenerationMethod::DepthFirstSearch
-             else
-               STDERR.puts "Unknown method: #{generation_method}"
-               exit 1
-             end
-  end
+    if save_to = options.save_to
+      File.open(save_to, "w") { |file| file.puts(maze.to_json) }
+    end
+    exit 0
 
-  parser.on("-a", "--animate", "Animate generation") do
-    animate = true
-  end
-
-  parser.on("-h", "--help", "Show this help") do
-    puts parser
-    exit
-  end
-
-  parser.on("-r", "--render-to=FILE_PATH", "Redirect final render to given file") do |file_path|
-    render_io = File.open(file_path, "w")
-  end
-
-  parser.on("-s", "--save-to=FILE_PATH", "Save final maze to given file") do |file_path|
-    save_to = File.open(file_path, "w")
-  end
-
-  parser.on("-l", "--load=FILE_PATH", "Load maze from given file") do |file_path|
-    maze = MazeCraze::Maze.from_json(File.read(file_path))
+  rescue ex : File::Error
+    STDERR.puts "File Error: #{ex.message}"
+    exit 1
   end
 end
 
-if loaded_maze = maze
-  maze_renderer = MazeCraze::MazeGenerationRenderer.new(pointerof(loaded_maze).as(Pointer(MazeCraze::Maze)))
-  maze_renderer.render(render_io)
-  render_io.close if render_io != STDOUT
-else
-  new_maze = MazeCraze::Maze.new(width, height)
-  maze_renderer = MazeCraze::MazeGenerationRenderer.new(pointerof(new_maze))
-  new_maze.configure(
-    MazeCraze::CellConfig.new(0_u32, 0_u32),
-    MazeCraze::CellConfig.new(width - 1, height - 1),
-    maze_renderer
-  )
-  new_maze.generate!(method, animate)
-  maze_renderer.render(render_io)
-  render_io.close if render_io != STDOUT
-  if target = save_to
-    target.puts(new_maze.to_json)
-    target.close
-  end
-end
+MazeCraze.run
